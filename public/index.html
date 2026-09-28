@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Smart Building Environmental Monitoring</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(240px, 1fr));
+
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .building {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .value {
+            font-size: 18px;
+            margin: 8px 0;
+        }
+
+        .updated {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Smart Building Environmental Monitoring System</h1>
+
+    <p class="subtitle">
+        Live environmental information from multiple locations
+    </p>
+
+    <div
+        id="dashboard"
+        class="container"
+    >
+        Loading environmental data...
+    </div>
+
+
+    <script>
+
+        function getStatus(temperature, humidity) {
+
+            if (temperature > 30) {
+                return "High Temperature";
+            }
+
+            if (humidity > 80) {
+                return "High Humidity";
+            }
+
+            return "Normal";
+        }
+
+
+        async function loadData() {
+
+            try {
+
+                const response =
+                    await fetch("/environment/latest");
+
+                const data =
+                    await response.json();
+
+                const dashboard =
+                    document.getElementById("dashboard");
+
+                dashboard.innerHTML = "";
+
+                data.forEach(reading => {
+
+                    const card =
+                        document.createElement("div");
+
+                    card.className = "card";
+
+                    const time =
+                        new Date(
+                            reading.timestamp
+                        ).toLocaleString();
+
+                    const status =
+                        getStatus(
+                            reading.temperature,
+                            reading.humidity
+                        );
+
+                    card.innerHTML = `
+                        <div class="building">
+                            ${reading.building}
+                        </div>
+
+                        <div class="value">
+                            Temperature:
+                            ${reading.temperature} °C
+                        </div>
+
+                        <div class="value">
+                            Humidity:
+                            ${reading.humidity} %
+                        </div>
+
+                        <div class="value">
+                            Room:
+                            ${reading.room}
+                        </div>
+
+                        <div class="status">
+                            Status:
+                            ${status}
+                        </div>
+
+                        <div class="updated">
+                            Last updated:
+                            ${time}
+                        </div>
+                    `;
+
+                    dashboard.appendChild(card);
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "Dashboard error:",
+                    error
+                );
+
+                document.getElementById(
+                    "dashboard"
+                ).innerHTML =
+                    "Unable to retrieve environmental data.";
+            }
+        }
+
+
+        // Load immediately.
+        loadData();
+
+        // Refresh every 10 seconds.
+        setInterval(loadData, 10000);
+
+    </script>
+
+</body>
+
+</html>
